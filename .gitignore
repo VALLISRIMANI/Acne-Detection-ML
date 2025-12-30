@@ -6,6 +6,11 @@ facnenv/
 .ipynb_checkpoints/
 BaseModel/.ipynb_checkpoints/
 
+
+# database/
+# BaseModel/database/
+
+
 # Python cache
 __pycache__/
 *.pyc
