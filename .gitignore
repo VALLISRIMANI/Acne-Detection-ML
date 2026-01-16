@@ -1,6 +1,7 @@
 # Python virtual environment
-BaseModel/facnenv/
-facnenv/
+BaseModel/venv/
+BaseModel/Model/venv/
+venv/
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
