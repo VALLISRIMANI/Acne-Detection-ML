@@ -1,0 +1,29 @@
+Classical CNN
+cleanskin  -> correctly predicted: 106 , wrongly predicted: 105
+mild       -> correctly predicted: 23 , wrongly predicted: 188
+moderate   -> correctly predicted: 47 , wrongly predicted: 164
+severe     -> correctly predicted: 183 , wrongly predicted: 28
+unknown    -> correctly predicted: 199 , wrongly predicted: 10
+--------------------------------------------------
+EfficientNet
+cleanskin  -> correctly predicted: 160 , wrongly predicted: 51
+mild       -> correctly predicted: 154 , wrongly predicted: 57
+moderate   -> correctly predicted: 86 , wrongly predicted: 125
+severe     -> correctly predicted: 124 , wrongly predicted: 87
+unknown    -> correctly predicted: 181 , wrongly predicted: 28
+--------------------------------------------------
+ResNet50
+cleanskin  -> correctly predicted: 165 , wrongly predicted: 46
+mild       -> correctly predicted: 96 , wrongly predicted: 115
+moderate   -> correctly predicted: 58 , wrongly predicted: 153
+severe     -> correctly predicted: 86 , wrongly predicted: 125
+unknown    -> correctly predicted: 144 , wrongly predicted: 65
+--------------------------------------------------
+VGG
+cleanskin  -> correctly predicted: 164 , wrongly predicted: 47
+mild       -> correctly predicted: 132 , wrongly predicted: 79
+moderate   -> correctly predicted: 131 , wrongly predicted: 80
+severe     -> correctly predicted: 138 , wrongly predicted: 73
+unknown    -> correctly predicted: 185 , wrongly predicted: 24
+--------------------------------------------------
+

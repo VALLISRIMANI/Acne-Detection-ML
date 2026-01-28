@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Acne Detection</title>
+    <style>
+        body { font-family: Arial; background:#f4f4f4; }
+        .box { width:900px; margin:auto; background:#fff; padding:20px; }
+        .preview img { width:120px; margin:10px; border:1px solid #ccc; }
+        .result-block { margin-top:30px; }
+        .result-block img { width:200px; border:1px solid #ccc; margin-bottom:10px; }
+        table { width:100%; border-collapse: collapse; }
+        th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+        th { background:#222; color:#fff; }
+        button { margin-top:10px; }
+        video, canvas { border:1px solid #ccc; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Acne Detection – Multiple Images</h2>
+
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+
+        <!-- FILE INPUT -->
+        <input type="file"
+               name="images"
+               id="fileInput"
+               accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png"
+               multiple
+               onchange="previewImages(event)">
+        <br><br>
+
+        <!-- CAMERA BUTTON -->
+        <button type="button" onclick="openCamera()">Use Camera</button>
+
+        <!-- CAMERA VIEW -->
+        <div>
+            <video id="video" width="300" autoplay style="display:none;"></video><br>
+            <button type="button" id="captureBtn" onclick="captureImage()" style="display:none;">
+                Capture
+            </button>
+        </div>
+
+        <!-- CROP CANVAS -->
+        <canvas id="canvas" width="300" height="300" style="display:none;"></canvas><br>
+        <button type="button" id="useCropBtn" onclick="useCropped()" style="display:none;">
+            Use Cropped Image
+        </button>
+
+        <!-- PREVIEW -->
+        <div class="preview" id="preview"></div>
+
+        <button type="submit">Predict</button>
+    </form>
+
+    {% for item in all_results %}
+    <div class="result-block">
+        <img src="data:image/jpeg;base64,{{ item.image }}">
+        <table>
+            <tr>
+                <th>Model</th>
+                <th>Prediction</th>
+                <th>Confidence (%)</th>
+            </tr>
+            {% for r in item.results %}
+            <tr>
+                <td>{{ r.model }}</td>
+                <td>{{ r.prediction }}</td>
+                <td>{{ r.confidence }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+let stream;
+let capturedBlob;
+
+/* FILE PREVIEW */
+function previewImages(event) {
+    const preview = document.getElementById("preview");
+    preview.innerHTML = "";
+
+    for (const file of event.target.files) {
+        const ext = file.name.split(".").pop().toLowerCase();
+        if (!["jpg", "jpeg", "png", "heic"].includes(ext)) continue;
+
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+    }
+}
+
+/* OPEN CAMERA */
+async function openCamera() {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const video = document.getElementById("video");
+    video.srcObject = stream;
+    video.style.display = "block";
+    document.getElementById("captureBtn").style.display = "inline-block";
+}
+
+/* CAPTURE IMAGE */
+function captureImage() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.style.display = "block";
+    document.getElementById("useCropBtn").style.display = "inline-block";
+
+    stream.getTracks().forEach(t => t.stop());
+    video.style.display = "none";
+}
+
+/* USE CROPPED IMAGE */
+function useCropped() {
+    const canvas = document.getElementById("canvas");
+
+    canvas.toBlob(blob => {
+        capturedBlob = blob;
+
+        const file = new File([blob], "camera.jpg", { type: "image/jpeg" });
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        document.getElementById("fileInput").files = dt.files;
+
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(blob);
+
+        const preview = document.getElementById("preview");
+        preview.innerHTML = "";
+        preview.appendChild(img);
+    }, "image/jpeg");
+}
+</script>
+
+</body>
+</html>
