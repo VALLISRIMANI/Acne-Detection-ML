@@ -13,7 +13,6 @@ Pylance (recommended)
 
 # Virtual Environment Creation 
 
-!important : `cd Basemodel`
 
 ***`python -m venv facnenv`***
 
@@ -33,11 +32,4 @@ Pylance (recommended)
 
 # EnvironMent Set
 
-### Create `file_name.ipynb` file
-
-***On top cell paste this \
-`import sys` \
-`sys.executable`
-***
-
-## now Write Your Code 
+`python app.py`
