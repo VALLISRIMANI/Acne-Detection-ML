@@ -1,89 +1,82 @@
-import os
-import warnings
-import base64
-import io
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-warnings.filterwarnings("ignore")
-
-from flask import Flask, render_template, request
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
+import os
 from PIL import Image
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
-app = Flask(__name__)
-
-CLASS_NAMES = ["cleanskin", "mild", "moderate", "severe", "unknown"]
 IMG_SIZE = 224
+BATCH_SIZE = 32
+CLASS_NAMES = ["cleanskin", "mild", "moderate", "severe", "unknown"]
 
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "heic"}
+model = tf.keras.models.load_model(
+    "../models/VisualGeometryGroup.keras",
+    compile=False
+)
 
-MODEL_INFO = {
-    "Classical CNN": "./models/classicalCNNmodel.keras",
-    "EfficientNet": "./models/Effiecientnet_acne_classification_model.keras",
-    "ResNet50": "./models/resnet50_acne_model.keras",
-    "VGG": "./models/VisualGeometryGroup.keras"
-}
+X = []
+y = []
 
-def custom_input_layer(*args, **kwargs):
-    if "batch_shape" in kwargs:
-        kwargs["batch_input_shape"] = kwargs.pop("batch_shape")
-    return tf.keras.layers.InputLayer(*args, **kwargs)
+base_dir = "test/test"
 
-models = {}
-with tf.keras.utils.custom_object_scope({"InputLayer": custom_input_layer}):
-    for name, path in MODEL_INFO.items():
-        models[name] = tf.keras.models.load_model(path)
+for label, class_name in enumerate(CLASS_NAMES):
+    class_dir = os.path.join(base_dir, class_name)
+    for file in os.listdir(class_dir):
+        path = os.path.join(class_dir, file)
+        try:
+            img = Image.open(path).convert("RGB")
+            img = img.resize((IMG_SIZE, IMG_SIZE))
+            img = np.array(img).astype("float32") / 255.0
+            X.append(img)
+            y.append(label)
+        except:
+            pass
 
-def preprocess_image(image):
-    image = image.convert("RGB")
-    image = image.resize((IMG_SIZE, IMG_SIZE))
-    image = np.array(image).astype("float32") / 255.0
-    return np.expand_dims(image, axis=0)
+X = np.array(X)
+y_true = np.array(y)
 
-def is_allowed(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+y_pred = np.argmax(model.predict(X, batch_size=BATCH_SIZE), axis=1)
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    all_results = []
+accuracy = np.mean(y_true == y_pred)
+print("Accuracy:", round(accuracy * 100, 2), "%")
 
-    if request.method == "POST":
-        images = request.files.getlist("images")
+report = classification_report(
+    y_true,
+    y_pred,
+    target_names=CLASS_NAMES,
+    output_dict=True
+)
 
-        for img_file in images:
-            if not img_file or not is_allowed(img_file.filename):
-                continue
+overall_precision = report["weighted avg"]["precision"]
+overall_recall = report["weighted avg"]["recall"]
+overall_f1 = report["weighted avg"]["f1-score"]
 
-            try:
-                image = Image.open(img_file)
+print("\nOverall Metrics")
+print("Precision:", round(overall_precision * 100, 2), "%")
+print("Recall:", round(overall_recall * 100, 2), "%")
+print("F1-score:", round(overall_f1 * 100, 2), "%")
 
-                buffer = io.BytesIO()
-                image.save(buffer, format="JPEG")
-                img_base64 = base64.b64encode(buffer.getvalue()).decode()
+cm = confusion_matrix(y_true, y_pred)
+disp = ConfusionMatrixDisplay(cm, display_labels=CLASS_NAMES)
+disp.plot(cmap="Blues", xticks_rotation=45)
+plt.title("Confusion Matrix")
+plt.show()
 
-                img = preprocess_image(image)
+metrics = ["Accuracy", "Precision", "Recall", "F1-score"]
+values = [
+    accuracy * 100,
+    overall_precision * 100,
+    overall_recall * 100,
+    overall_f1 * 100
+]
 
-                model_results = []
-                for name, model in models.items():
-                    probs = model.predict(img, verbose=0)[0]
-                    idx = np.argmax(probs)
+plt.figure()
+plt.bar(metrics, values)
+plt.ylabel("Percentage (%)")
+plt.title("Overall Model Performance Metrics")
+plt.ylim(0, 100)
 
-                    model_results.append({
-                        "model": name,
-                        "prediction": CLASS_NAMES[idx],
-                        "confidence": round(float(probs[idx]) * 100, 2)
-                    })
+for i, v in enumerate(values):
+    plt.text(i, v + 1, f"{v:.2f}%", ha="center")
 
-                all_results.append({
-                    "image": img_base64,
-                    "results": model_results
-                })
-
-            except Exception:
-                continue
-
-    return render_template("index.html", all_results=all_results)
-
-if __name__ == "__main__":
-    app.run(debug=False)
+plt.show()
