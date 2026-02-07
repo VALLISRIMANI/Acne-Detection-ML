@@ -10,6 +10,8 @@ BaseModel/.ipynb_checkpoints/
 
 /Secondaryscripts/
 
+.env
+/scripts/
 # database/
 # BaseModel/database/
 
