@@ -23,7 +23,7 @@ This API is hosted on HuggingFace Spaces and ready to use immediately.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/Acne-Detection-ML.git
+git clone https://github.com/VALLISRIMANI/Acne-Detection-ML.git
 cd Acne-Detection-ML
 ```
 
