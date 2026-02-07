@@ -1,5 +1,9 @@
 flask
-gunicorn
 tensorflow
 numpy
 pillow
+pillow-heif
+pymongo
+cloudinary
+python-dotenv
+gunicorn
